@@ -4,13 +4,12 @@
 
     <form action="#">
       <h5>Général</h5>
-      <Input name="ID" v-model="scenario.id" />
       <Input name="Name" v-model="scenario.name" />
       <hr />
       <h5>Oos</h5>
       <div class="form-group" v-for="(sentenceOo, index) in scenarioOos" :key="index">
-        <select class="form-control" v-model="sentenceOo.ooId">
-          <option v-for="oo in oos" :key="oo.id" :value="oo.id">{{ oo.name }}</option>
+        <select class="form-control" v-model="sentenceOo.ooUuid">
+          <option v-for="oo in oos" :key="oo.id" :value="oo.uuid">{{ oo.name }}</option>
         </select>
       </div>
       <button class="btn btn-success" @click.prevent="addOo">Ajouter Oo</button>
@@ -19,12 +18,12 @@
       <div class="form-group">
         <div class="card mb-2" v-for="(scenarioAnnexe, index) in scenarioAnnexes" :key="index">
           <div class="card-header d-flex align-items-center">
-            {{ scenarioAnnexe.hash }}
+            {{ scenarioAnnexe.name }}
             <i class="ml-auto fas fa-eye" v-if="scenarioAnnexe.visible" @click.prevent="scenarioAnnexe.visible = !scenarioAnnexe.visible"></i>
             <i class="ml-auto fas fa-eye-slash" v-if="!scenarioAnnexe.visible" @click.prevent="scenarioAnnexe.visible = !scenarioAnnexe.visible"></i>
           </div>
           <div :class="`card-body ${scenarioAnnexe.visible ? 'd-block' : 'd-none'}`">
-            <Input name="Hash" v-model="scenarioAnnexe.hash" />
+            <Input name="Name" v-model="scenarioAnnexe.name" />
             <Input name="Path" v-model="scenarioAnnexe.path" />
             <label>Type</label>
             <select class="form-control mb-3" v-model="scenarioAnnexe.type">
@@ -32,8 +31,8 @@
               <option value="exit">Phrase de fin</option>
             </select>
             <label>Oo</label>
-            <select class="form-control" v-model="scenarioAnnexe.ooId">
-              <option v-for="oo in oos" :key="oo.id" :value="oo.id">{{ oo.name }}</option>
+            <select class="form-control" v-model="scenarioAnnexe.ooUuid">
+              <option v-for="oo in oos" :key="oo.id" :value="oo.uuid">{{ oo.name }}</option>
             </select>
           </div>
         </div>
@@ -44,12 +43,12 @@
       <div class="form-group">
         <div class="card mb-2" v-for="(sentence, index) in scenarioSentences" :key="index">
           <div class="card-header d-flex align-items-center">
-            {{ sentence.hash }}
+            {{ sentence.name }}
             <i class="ml-auto fas fa-eye" v-if="sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
             <i class="ml-auto fas fa-eye-slash" v-if="!sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
           </div>
           <div :class="`card-body ${sentence.visible ? 'd-block' : 'd-none'}`">
-            <Input name="Hash" v-model="sentence.hash" />
+            <Input name="Name" v-model="sentence.name" />
             <Input name="Path" v-model="sentence.path" />
             <Input name="Order" v-model="sentence.order" />
             <div class="row">
@@ -63,8 +62,8 @@
               </div>
             </div>
             <label>Oo</label>
-            <select class="form-control" v-model="sentence.ooId">
-              <option v-for="oo in oos" :key="oo.id" :value="oo.id">{{ oo.name }}</option>
+            <select class="form-control" v-model="sentence.ooUuid">
+              <option v-for="oo in oos" :key="oo.uuid" :value="oo.uuid">{{ oo.name }}</option>
             </select>
           </div>
         </div>
@@ -72,26 +71,15 @@
       <button class="btn btn-success" @click.prevent="addSentence">Ajouter phrase</button>
       <hr />
       <div class="form-group">
-        <label for="scenarioJson">Scenario</label>
-        <textarea class="form-control" name="scenarioJson" id="scenarioJson" v-model="scenarioJson"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="scenarioOosJson">Scenario Oos</label>
-        <textarea class="form-control" name="scenarioOosJson" id="scenarioOosJson" v-model="scenarioOosJson"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="scenarioSentencesJson">Scenario Sentences</label>
-        <textarea class="form-control" name="scenarioSentencesJson" id="scenarioSentencesJson" v-model="scenarioSentencesJson"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="audios">Audios</label>
-        <textarea class="form-control" name="audios" id="audios" v-model="audios"></textarea>
+        <label for="json">JSON</label>
+        <textarea class="form-control" name="json" id="json" v-model="json"></textarea>
       </div>
     </form>
   </div>
 </template>
 
 <script>
+import { v4 as uuidv4 } from 'uuid';
 import Input from './Input';
 
 export default {
@@ -100,7 +88,7 @@ export default {
   data: () => {
     return {
       scenario: {
-        id: 1,
+        uuid: uuidv4(),
         name: '',
       },
       scenarioOos: [],
@@ -109,114 +97,111 @@ export default {
       scenarioSentences: [],
       oos: [
         {
-          id: 1,
+          uuid: '1c115903-1aa5-4216-b438-5e455124f66d',
           name: "Disc'Oo",
         },
         {
-          id: 2,
+          uuid: '23c7e653-f1a6-435c-9f58-24f9efb8c5e1',
           name: "Cin'Oo'che",
         },
         {
-          id: 3,
+          uuid: '4d8cf885-f681-452f-97a6-5077744eb4be',
           name: "Inf'Oo",
         },
         {
-          id: 4,
+          uuid: 'a10058d0-46e0-4e54-bf54-72bef1ae283f',
           name: "Y'Oo'ga",
         },
         {
-          id: 5,
+          uuid: 'ca5f71b5-8dc0-4acd-9d58-3c3035622afe',
           name: "Végét'Oo",
         },
         {
-          id: 6,
+          uuid: '92021a2e-77d3-48b6-bd31-3e86d6792e05',
           name: "Wh'Oo'w",
         },
         {
-          id: 7,
+          uuid: '55a7bed3-a9a5-4c6c-9913-d8966d8dfc59',
           name: "C'Oo'mique",
         },
       ],
     };
   },
   computed: {
-    scenarioJson: {
+    json: {
       get: function() {
-        return JSON.stringify(this.scenario, undefined, 2);
-      },
-    },
-    scenarioOosJson: {
-      get: function() {
-        return JSON.stringify(this.scenarioOos, undefined, 2);
-      },
-    },
-    scenarioSentencesJson: {
-      get: function() {
-        const sentences = [];
+        const json = {
+          scenario: null,
+          sentences: [],
+          oos: [],
+          audios: [],
+        };
+
+        json.scenario = this.scenario;
+        json.oos = this.scenarioOos;
 
         this.scenarioSentences.forEach((sentence) => {
-          sentences.push({
+          json.sentences.push({
+            uuid: sentence.uuid,
             hash: sentence.hash,
             interaction: sentence.interaction,
-            scenarioId: this.scenario.id,
+            scenarioUuid: this.scenario.uuid,
           });
         });
 
-        return JSON.stringify(sentences, undefined, 2);
-      },
-    },
-    audios: {
-      get: function() {
-        const audios = [];
         this.scenarioAnnexes.forEach((annexe) => {
-          audios.push({
-            hash: annexe.hash,
+          json.audios.push({
+            uuid: uuidv4(),
+            name: annexe.name,
             url: annexe.path,
             type: annexe.type,
-            audibleId: this.scenario.id,
+            audibleUuid: this.scenario.uuid,
             audibleType: 'scenario',
-            ooId: annexe.ooId,
+            ooUuid: annexe.ooUuid,
           });
         });
 
-        this.scenarioSentences.forEach((sentence, index) => {
-          audios.push({
-            hash: sentence.hash,
+        this.scenarioSentences.forEach((sentence) => {
+          json.audios.push({
+            uuid: uuidv4(),
+            name: sentence.name,
             url: sentence.path,
             type: sentence.type,
-            audibleId: index + 1,
+            audibleUuid: sentence.uuid,
             audibleType: 'sentence',
-            ooId: sentence.ooId,
+            ooUuid: sentence.ooUuid,
           });
         });
 
-        return JSON.stringify(audios, undefined, 2);
+        return JSON.stringify(json, undefined, 2);
       },
     },
   },
   methods: {
     addOo() {
       this.scenarioOos.push({
-        scenarioId: this.scenario.id,
-        ooId: null,
+        scenarioUuid: this.scenario.uuid,
+        ooUuid: null,
       });
     },
     addAnnexe() {
       this.scenarioAnnexes.push({
-        hash: null,
+        uuid: uuidv4(),
+        name: null,
         path: null,
         type: null,
-        ooId: null,
+        ooUuid: null,
         visible: true,
       });
     },
     addSentence() {
       this.scenarioSentences.push({
-        hash: null,
+        uuid: uuidv4(),
+        name: null,
         path: null,
         interaction: false,
         type: null,
-        ooId: null,
+        ooUuid: null,
         order: this.scenarioSentences.length,
         visible: true,
       });
@@ -225,4 +210,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+#json {
+  height: 600px;
+}
+</style>
