@@ -23,8 +23,14 @@
             <i class="ml-auto fas fa-eye-slash" v-if="!scenarioAnnexe.visible" @click.prevent="scenarioAnnexe.visible = !scenarioAnnexe.visible"></i>
           </div>
           <div :class="`card-body ${scenarioAnnexe.visible ? 'd-block' : 'd-none'}`">
-            <Input name="Name" v-model="scenarioAnnexe.name" />
-            <Input name="Path" v-model="scenarioAnnexe.path" />
+            <div class="row">
+              <div class="col-6">
+                <Input name="Name" v-model="scenarioAnnexe.name" />
+              </div>
+              <div class="col-6">
+                <Input name="Path" v-model="scenarioAnnexe.path" />
+              </div>
+            </div>
             <label>Type</label>
             <select class="form-control mb-3" v-model="scenarioAnnexe.type">
               <option value="entry">Introduction</option>
@@ -49,11 +55,23 @@
               <i class="ml-auto fas fa-eye-slash" v-if="!sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
             </div>
             <div :class="`card-body ${sentence.visible ? 'd-block' : 'd-none'}`">
-              <Input name="Name" v-model="sentence.name" />
-              <Input name="Path" v-model="sentence.path" />
               <div class="row">
                 <div class="col-6">
-                  <div class="form-check">
+                  <Input name="Name" v-model="sentence.name" />
+                </div>
+                <div class="col-6">
+                  <Input name="Path" v-model="sentence.path" />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-6">
+                  <label>Oo</label>
+                  <select class="form-control" v-model="sentence.ooUuid">
+                    <option v-for="oo in oos" :key="oo.uuid" :value="oo.uuid">{{ oo.name }}</option>
+                  </select>
+                </div>
+                <div class="col-6 d-flex align-items-center">
+                  <div class="form-check mt-4">
                     <label class="form-check-label">
                       <input class="form-check-input" type="checkbox" v-model="sentence.interaction" />
                       Interaction
@@ -61,10 +79,35 @@
                   </div>
                 </div>
               </div>
-              <label>Oo</label>
-              <select class="form-control" v-model="sentence.ooUuid">
-                <option v-for="oo in oos" :key="oo.uuid" :value="oo.uuid">{{ oo.name }}</option>
-              </select>
+              <div class="container mt-3" v-if="sentence.interaction">
+                <div class="row flex-column">
+                  <h6>Phrases de sortie</h6>
+                  <div class="card mb-2" v-for="(s, i) in sentence.sentences" :key="i">
+                    <div class="card-header d-flex align-items-center">
+                      {{ s.name }}
+                      <i class="ml-auto fas fa-eye" v-if="s.visible" @click.prevent="s.visible = !s.visible"></i>
+                      <i class="ml-auto fas fa-eye-slash" v-if="!s.visible" @click.prevent="s.visible = !s.visible"></i>
+                    </div>
+                    <div :class="`card-body ${s.visible ? 'd-block' : 'd-none'}`">
+                      <div class="row">
+                        <div class="col-6">
+                          <Input name="Name" v-model="s.name" />
+                        </div>
+                        <div class="col-6">
+                          <Input name="Path" v-model="s.path" />
+                        </div>
+                      </div>
+                      <label>Oo</label>
+                      <select class="form-control" v-model="s.ooUuid">
+                        <option v-for="oo in oos" :key="oo.uuid" :value="oo.uuid">{{ oo.name }}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-grou mb-0">
+                    <button class="btn btn-success mt-2" @click.prevent="addSubSentence(sentence)">Ajouter phrase de sortie</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </draggable>
@@ -174,9 +217,72 @@ export default {
             audibleType: 'sentence',
             ooUuid: sentence.ooUuid,
           });
+
+          sentence.sentences.forEach((s) => {
+            json.audios.push({
+              uuid: uuidv4(),
+              name: s.name,
+              url: s.path,
+              type: s.type,
+              audibleUuid: sentence.uuid,
+              audibleType: 'sentence',
+              ooUuid: s.ooUuid,
+            });
+          });
         });
 
         return JSON.stringify(json, undefined, 2);
+      },
+      set: function(value) {
+        const object = JSON.parse(value);
+
+        this.scenarioOos = object.oos;
+        this.scenario = object.scenario;
+
+        this.scenarioSentences = [];
+        this.scenarioAnnexes = [];
+
+        object.sentences.forEach((sentence) => {
+          const audio = object.audios.find((a) => a.audibleUuid === sentence.uuid);
+
+          this.scenarioSentences.push({
+            uuid: sentence.uuid,
+            name: audio.name,
+            path: audio.url,
+            interaction: sentence.interaction,
+            type: audio.type,
+            ooUuid: audio.ooUuid,
+            order: sentence.order,
+            visible: false,
+            sentences: [],
+          });
+        });
+
+        object.audios.forEach((audio) => {
+          if (audio.audibleType === 'scenario') {
+            this.scenarioAnnexes.push({
+              uuid: audio.uuid,
+              name: audio.name,
+              path: audio.url,
+              type: audio.type,
+              ooUuid: audio.ooUuid,
+              visible: false,
+            });
+          } else if (audio.audibleType === 'sentence') {
+            if (audio.type !== null) {
+              const sentence = this.scenarioSentences.find((s) => s.uuid === audio.audibleUuid);
+
+              sentence.sentences.push({
+                uuid: audio.uuid,
+                name: audio.name,
+                path: audio.url,
+                type: audio.type,
+                ooUuid: audio.ooUuid,
+                visible: false,
+              });
+            }
+          }
+        });
       },
     },
   },
@@ -211,6 +317,19 @@ export default {
         type: null,
         ooUuid: null,
         order: this.scenarioSentences.length,
+        visible: true,
+        sentences: [],
+      });
+    },
+    addSubSentence(sentence) {
+      sentence.sentences.push({
+        uuid: uuidv4(),
+        name: null,
+        path: null,
+        interaction: false,
+        type: 'dislike',
+        ooUuid: null,
+        order: sentence.sentences.length,
         visible: true,
       });
     },
