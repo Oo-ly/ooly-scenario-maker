@@ -41,32 +41,33 @@
       <hr />
       <h5>Phrases du scénario</h5>
       <div class="form-group">
-        <div class="card mb-2" v-for="(sentence, index) in scenarioSentences" :key="index">
-          <div class="card-header d-flex align-items-center">
-            {{ sentence.name }}
-            <i class="ml-auto fas fa-eye" v-if="sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
-            <i class="ml-auto fas fa-eye-slash" v-if="!sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
-          </div>
-          <div :class="`card-body ${sentence.visible ? 'd-block' : 'd-none'}`">
-            <Input name="Name" v-model="sentence.name" />
-            <Input name="Path" v-model="sentence.path" />
-            <Input name="Order" v-model="sentence.order" />
-            <div class="row">
-              <div class="col-6">
-                <div class="form-check">
-                  <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" v-model="sentence.interaction" />
-                    Interaction
-                  </label>
+        <draggable v-model="scenarioSentences" @end="onDragEnd">
+          <div class="card mb-2" v-for="(sentence, index) in scenarioSentences" :key="index">
+            <div class="card-header d-flex align-items-center">
+              {{ sentence.name }}
+              <i class="ml-auto fas fa-eye" v-if="sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
+              <i class="ml-auto fas fa-eye-slash" v-if="!sentence.visible" @click.prevent="sentence.visible = !sentence.visible"></i>
+            </div>
+            <div :class="`card-body ${sentence.visible ? 'd-block' : 'd-none'}`">
+              <Input name="Name" v-model="sentence.name" />
+              <Input name="Path" v-model="sentence.path" />
+              <div class="row">
+                <div class="col-6">
+                  <div class="form-check">
+                    <label class="form-check-label">
+                      <input class="form-check-input" type="checkbox" v-model="sentence.interaction" />
+                      Interaction
+                    </label>
+                  </div>
                 </div>
               </div>
+              <label>Oo</label>
+              <select class="form-control" v-model="sentence.ooUuid">
+                <option v-for="oo in oos" :key="oo.uuid" :value="oo.uuid">{{ oo.name }}</option>
+              </select>
             </div>
-            <label>Oo</label>
-            <select class="form-control" v-model="sentence.ooUuid">
-              <option v-for="oo in oos" :key="oo.uuid" :value="oo.uuid">{{ oo.name }}</option>
-            </select>
           </div>
-        </div>
+        </draggable>
       </div>
       <button class="btn btn-success" @click.prevent="addSentence">Ajouter phrase</button>
       <hr />
@@ -81,10 +82,11 @@
 <script>
 import { v4 as uuidv4 } from 'uuid';
 import Input from './Input';
+import draggable from 'vuedraggable';
 
 export default {
   name: 'Home',
-  components: { Input },
+  components: { Input, draggable },
   data: () => {
     return {
       scenario: {
@@ -145,6 +147,7 @@ export default {
             uuid: sentence.uuid,
             hash: sentence.hash,
             interaction: sentence.interaction,
+            order: sentence.order,
             scenarioUuid: this.scenario.uuid,
           });
         });
@@ -178,6 +181,11 @@ export default {
     },
   },
   methods: {
+    onDragEnd() {
+      this.scenarioSentences.forEach((sentence, index) => {
+        sentence.order = index;
+      });
+    },
     addOo() {
       this.scenarioOos.push({
         scenarioUuid: this.scenario.uuid,
