@@ -179,7 +179,7 @@ export default {
       get: function() {
         const json = {
           scenario: null,
-          sentences: [],
+          // sentences: [],
           oos: [],
           audios: [],
         };
@@ -188,13 +188,13 @@ export default {
         json.oos = this.scenarioOos;
 
         this.scenarioSentences.forEach((sentence) => {
-          json.sentences.push({
-            uuid: sentence.uuid,
-            name: sentence.name,
-            interaction: sentence.interaction,
-            order: sentence.order,
-            scenarioUuid: this.scenario.uuid,
-          });
+          // json.sentences.push({
+          //   uuid: sentence.uuid,
+          //   name: sentence.name,
+          //   interaction: sentence.interaction,
+          //   order: sentence.order,
+          //   scenarioUuid: this.scenario.uuid,
+          // });
         });
 
         this.scenarioAnnexes.forEach((annexe) => {
@@ -210,13 +210,16 @@ export default {
         });
 
         this.scenarioSentences.forEach((sentence) => {
+          const uuid = uuidv4();
           json.audios.push({
-            uuid: uuidv4(),
+            uuid: uuid,
             name: sentence.name,
             url: sentence.path,
             type: sentence.type,
-            audibleUuid: sentence.uuid,
-            audibleType: 'sentence',
+            order: sentence.order,
+            interaction: sentence.interaction,
+            audibleUuid: this.scenario.uuid,
+            audibleType: 'scenario',
             ooUuid: sentence.ooUuid,
           });
 
@@ -226,12 +229,14 @@ export default {
               name: s.name,
               url: s.path,
               type: s.type,
-              audibleUuid: sentence.uuid,
-              audibleType: 'sentence',
+              audibleUuid: uuid,
+              audibleType: 'audio',
               ooUuid: s.ooUuid,
             });
           });
         });
+
+        delete json.sentences;
 
         return JSON.stringify(json, undefined, 2);
       },
