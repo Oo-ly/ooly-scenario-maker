@@ -243,33 +243,35 @@ export default {
         this.scenarioSentences = [];
         this.scenarioAnnexes = [];
 
-        object.sentences.forEach((sentence) => {
-          const audio = object.audios.find((a) => a.audibleUuid === sentence.uuid);
-
-          this.scenarioSentences.push({
-            uuid: sentence.uuid,
-            name: audio.name,
-            path: audio.url,
-            interaction: sentence.interaction,
-            type: audio.type,
-            ooUuid: audio.ooUuid,
-            order: sentence.order,
-            visible: false,
-            sentences: [],
-          });
+        object.audios.forEach((sentence) => {
+          if (sentence.audibleType === 'scenario' && sentence.type === null) {
+            this.scenarioSentences.push({
+              uuid: sentence.uuid,
+              name: sentence.name,
+              path: sentence.url,
+              interaction: sentence.interaction,
+              type: sentence.type,
+              ooUuid: sentence.ooUuid,
+              order: sentence.order,
+              visible: false,
+              sentences: [],
+            });
+          }
         });
 
         object.audios.forEach((audio) => {
           if (audio.audibleType === 'scenario') {
-            this.scenarioAnnexes.push({
-              uuid: audio.uuid,
-              name: audio.name,
-              path: audio.url,
-              type: audio.type,
-              ooUuid: audio.ooUuid,
-              visible: false,
-            });
-          } else if (audio.audibleType === 'sentence') {
+            if (audio.type !== null) {
+              this.scenarioAnnexes.push({
+                uuid: audio.uuid,
+                name: audio.name,
+                path: audio.url,
+                type: audio.type,
+                ooUuid: audio.ooUuid,
+                visible: false,
+              });
+            }
+          } else if (audio.audibleType === 'audio') {
             if (audio.type !== null) {
               const sentence = this.scenarioSentences.find((s) => s.uuid === audio.audibleUuid);
 
