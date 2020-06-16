@@ -293,12 +293,13 @@ export default {
           });
 
           if (annexe.sentences.length > 0) {
-            annexe.sentences.forEach(s => {
+            annexe.sentences.forEach((s, i) => {
               json.audios.push({
                 uuid: uuidv4(),
                 name: s.name,
                 url: s.path,
                 type: "dislike",
+                order: i,
                 audibleUuid: uuid,
                 audibleType: "audio",
                 ooUuid: s.ooUuid
@@ -327,6 +328,7 @@ export default {
               name: s.name,
               url: s.path,
               type: s.type,
+              order: s.order,
               audibleUuid: uuid,
               audibleType: "audio",
               ooUuid: s.ooUuid
@@ -422,7 +424,7 @@ export default {
         path: null,
         type: null,
         interaction: false,
-        order: this.scenarioSentences.length,
+        order: this.scenarioAnnexes.length,
         ooUuid: null,
         visible: true,
         sentences: []
